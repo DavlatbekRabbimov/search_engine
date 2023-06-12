@@ -1,0 +1,29 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: test
+    url: jdbc:mysql://localhost:3306/search_engine?useUnicode=true&characterEncoding=UTF-8&characterSetResults=utf8mb4&connectionCollation=utf8mb4_general_ci
+  jpa:
+    database: mysql
+    open-in-view: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        search:
+          lucene_version: LATEST
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+indexing-settings:
+  sites:
+    - url: https://www.svetlovka.ru
+      name: Светловка
+    - url: https://dimonvideo.ru
+      name: ДимонВидео
+    - url: https://www.playback.ru
+      name: ПлейБек

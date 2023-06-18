@@ -1,4 +1,4 @@
-package searchengine.services.serviceimpl;
+package searchengine.services.parser;
 
 import lombok.AllArgsConstructor;
 import org.jsoup.Jsoup;
@@ -8,6 +8,7 @@ import searchengine.model.*;
 import searchengine.model.entity.Site;
 import searchengine.model.repo.PageRepo;
 import searchengine.model.repo.SiteRepo;
+import searchengine.services.serviceimpl.DbService;
 
 import java.io.IOException;
 import java.util.*;
@@ -19,7 +20,7 @@ public class SiteRecursiveTask extends RecursiveAction {
 
     private final SiteRepo siteRepo;
     private final PageRepo pageRepo;
-    private final DbServiceImpl db;
+    private final DbService db;
     private final Site site;
     private final String path;
     public static volatile boolean isInterrupted = true;

@@ -15,6 +15,7 @@ import searchengine.model.*;
 
 import searchengine.model.entity.Site;
 import searchengine.model.repo.*;
+import searchengine.services.parser.SiteRecursiveTask;
 import searchengine.services.searchtools.SiteTool;
 import searchengine.services.service.IndexingService;
 
@@ -33,7 +34,7 @@ public class IndexingServiceImpl implements IndexingService {
     private final PageRepo pageRepo;
     private final LemmaRepo lemmaRepo;
     private final IndexRepo indexRepo;
-    private final DbServiceImpl db;
+    private final DbService db;
     private final SiteConfig siteConfig;
     private final SiteTool siteTool;
     private ForkJoinPool pool;

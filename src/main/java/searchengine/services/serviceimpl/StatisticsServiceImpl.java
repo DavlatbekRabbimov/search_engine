@@ -1,4 +1,4 @@
-package searchengine.services.parser;
+package searchengine.services.serviceimpl;
 
 import org.apache.commons.lang3.StringUtils;
 import searchengine.config.SiteConfig;
@@ -16,7 +16,6 @@ import searchengine.services.service.IndexingService;
 import searchengine.services.service.StatisticsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import searchengine.services.serviceimpl.DbServiceImpl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +28,7 @@ public class StatisticsServiceImpl implements StatisticsService {
     private final PageRepo pageRepo;
     private final LemmaRepo lemmaRepo;
     private final IndexingService indexingService;
-    private final DbServiceImpl db;
+    private final DbService db;
     private final SiteConfig siteConfig;
 
     @Override

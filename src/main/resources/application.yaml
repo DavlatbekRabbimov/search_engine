@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 8181
 
 spring:
   datasource:
@@ -21,9 +21,9 @@ spring:
 
 indexing-settings:
   sites:
-    - url: https://www.svetlovka.ru
+    - url: https://www.svetlovka.ru/
       name: Светловка
-    - url: https://dimonvideo.ru
+    - url: https://dimonvideo.ru/
       name: ДимонВидео
     - url: https://playback.ru/
       name: ПлейБек

@@ -98,7 +98,7 @@ public class DbService {
     }
 
     private Lemma lemmaSaverSetting(Page page, String lemmaName) {
-        return lemmaRepo.findOptByLemma(lemmaName).map(lemma -> {
+        return lemmaRepo.findByLemma(lemmaName).map(lemma -> {
             lemma.setFrequency(lemma.getFrequency() + 1);
             return lemma;
         }).orElse(new Lemma(page.getSite(), lemmaName, 1));

@@ -1,6 +1,8 @@
 package searchengine.services.serviceimpl;
 
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
 import searchengine.config.SiteConfig;
 import searchengine.config.Uri;
 import searchengine.dto.statistics.DetailedStatisticsItem;
@@ -14,8 +16,6 @@ import searchengine.model.repo.PageRepo;
 import searchengine.model.repo.SiteRepo;
 import searchengine.services.service.IndexingService;
 import searchengine.services.service.StatisticsService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +39,7 @@ public class StatisticsServiceImpl implements StatisticsService {
 
         List<DetailedStatisticsItem> detailed = new ArrayList<>();
         for (Uri siteUri : siteConfig.getSites()) {
-            String siteUrl = StringUtils.chomp(siteUri.getUrl(), "/");
+            String siteUrl = StringUtils.substringBeforeLast(siteUri.getUrl(), "/");
             if (siteRepo.findSiteByUrl(siteUrl).isEmpty()) db.saveSiteToDb(siteUri, Status.INDEXED);
             siteRepo.findSiteByUrl(siteUrl).ifPresent(site -> detailed.add(initItem(site, total)));
         }

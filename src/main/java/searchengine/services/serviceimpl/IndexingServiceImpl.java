@@ -53,7 +53,7 @@ public class IndexingServiceImpl implements IndexingService {
             stopIndexing();
         }
         if (SiteRecursiveTask.isInterrupted) {
-            result.setResult(true);
+            result.setResult(false);
             return result;
         }
         return result;
@@ -67,11 +67,11 @@ public class IndexingServiceImpl implements IndexingService {
             result.setResult(true);
             startIndexingPage(url);
         }
-        if (!siteTool.isUrlFound(url)) {
+        else {
             result.setError("Данная страница находится за пределами сайтов, указанных в конфигурационном файле");
         }
-        if (!siteTool.isUrlFound("")) {
-            result.setError("Ошибка: Пустое поле. Пожалуйста, введите адрес страницы сайта, указанного в конфигурационном файле.");
+        if (url.isEmpty()) {
+            result.setError("Ошибка: Пустое поле. Пожалуйста, введите адрес страницы сайта, указанного в конфигурационном файле");
         }
         return result;
     }
@@ -120,7 +120,7 @@ public class IndexingServiceImpl implements IndexingService {
         }
     }
 
-    public Thread createIndexingThread(Site site) {
+    private Thread createIndexingThread(Site site) {
         return new Thread(() -> {
             pool.invoke(new SiteRecursiveTask(siteRepo, pageRepo, db, site, ""));
             if (SiteRecursiveTask.isInterrupted) return;
@@ -128,7 +128,7 @@ public class IndexingServiceImpl implements IndexingService {
         });
     }
 
-    public void initAndSaveSiteToDb(Site site) {
+    private void initAndSaveSiteToDb(Site site) {
         Optional<Site> optSite = siteRepo.findSiteByUrl(site.getUrl());
         if (optSite.isPresent() && !optSite.get().getStatus().equals(Status.FAILED)) {
             optSite.get().setStatus(Status.INDEXED);

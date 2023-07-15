@@ -21,7 +21,7 @@ public class LemmaTool {
         List<Lemma> filteredLemmaList = lemmaList.stream().filter(lemma -> lemma.getFrequency() < 300).collect(Collectors.toList());
         Set<Page> pageSet = pageRepo.findByLemmasAndSites(filteredLemmaList, siteList);
         AtomicReference<Set<Page>> atomic = new AtomicReference<>(pageSet);
-        filteredLemmaList.stream().forEach(filtered -> atomic.set(new HashSet<>(pageRepo.findByCollections(filtered, siteList, atomic.get()))));
+        filteredLemmaList.stream().forEach(filteredLemmas -> atomic.set(new HashSet<>(pageRepo.findByCollections(filteredLemmas, siteList, atomic.get()))));
         return atomic.get();
     }
 }

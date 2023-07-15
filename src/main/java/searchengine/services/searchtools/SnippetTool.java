@@ -1,19 +1,52 @@
 package searchengine.services.searchtools;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import searchengine.model.entity.Lemma;
 import searchengine.services.serviceimpl.LemmatizerServiceImpl;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 @RequiredArgsConstructor
 public class SnippetTool {
-    private final LemmatizerServiceImpl lemmatizer;
     private final static int SNIPPET_LENGTH = 260;
     private final static int LIMIT_IN_DISTANCE_BEFORE_BOLD = 50;
+    private final LemmatizerServiceImpl lemmatizer;
+
+    public String generatedContentWithLemmaList(String text, List<Lemma> lemmaList) {
+        Map<String, Set<String>> normalWords = lemmatizer.getGeneratedNormalWords(text);
+        StringBuilder combinedWords = new StringBuilder();
+        for (String splitText : text.split(" ")) {
+            AtomicReference<String> words = new AtomicReference<>(splitText);
+            lemmaList.stream().forEach(lemma -> words.set(tagQuery(words.get(), lemma.getLemma(), normalWords)));
+            combinedWords.append(words).append(" ");
+        }
+        return getSnippet(combinedWords.toString()).replaceAll("\\s+", " ").concat(" ...").trim();
+    }
+
+    private String tagQuery(String word, String lemma, Map<String, Set<String>> normalWords) {
+        Set<String> normalLemmas = normalWords.get(lemma);
+        word = word.replaceAll("[^а-яА-ЯёЁ\\s]+", " ").replaceAll("\\s+", " ");
+
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < word.length(); i++) {
+            char c = word.charAt(i);
+            if (Character.isWhitespace(c) || Character.isLetter(c)) {
+                String taggedWord = builder.append(c).toString();
+                if (normalLemmas == null) return word.replaceAll("\\s+", " ");
+                if ((normalLemmas.stream().anyMatch(taggedWord::equalsIgnoreCase))) {
+                    word = word.replace(taggedWord, "<b>".concat(taggedWord).concat("</b>")).replaceAll("\\s+", " ");
+                }
+            }
+        }
+        return word;
+    }
 
     private String getSnippet(String text) {
         int startIndex = text.indexOf("<b>");
@@ -64,40 +97,13 @@ public class SnippetTool {
         }
         return uniqueSnippet.toString().replaceAll("\\s+", " ").trim();
     }
-
-    private String getRussianWords(String text) {
-        return text.replaceAll("([\\p{Punct}\\s\\w]+)", " ").trim();
-    }
-
-    private String tagQuery(String word, String lemma, Map<String, Set<String>> generatedWords) {
-        Set<String> lemmas = generatedWords.get(lemma);
-        word = getRussianWords(word);
-
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < word.length(); i++) {
-            char c = word.charAt(i);
-            if (Character.isWhitespace(c) || Character.isLetter(c)) {
-                String taggedWord = builder.append(c).toString();
-                if (lemmas == null) return word.replaceAll("\\s+", " ");
-                if ((lemmas.stream().anyMatch(taggedWord::equalsIgnoreCase))) {
-                    word = word.replace(taggedWord, "<b>".concat(taggedWord).concat("</b>")).replaceAll("\\s+", " ");
-                }
-            }
-        }
-        return word;
-    }
-
-    public String generatedContentWithLemmaList(String text, List<Lemma> lemmaList) {
-        Map<String, Set<String>> normalWords = lemmatizer.getGeneratedNormalWords(text);
-        StringBuilder combinedWords = new StringBuilder();
-        for (String splitText : text.split(" ")) {
-            AtomicReference<String> words = new AtomicReference<>(splitText);
-            lemmaList.stream().forEach(lemma -> words.set(tagQuery(words.get(), lemma.getLemma(), normalWords)));
-            combinedWords.append(words).append(" ");
-        }
-        return getSnippet(combinedWords.toString()).replaceAll("\\s+", " ").concat(" ...").trim();
-    }
-
 }
+
+
+
+
+
+
+
 
 

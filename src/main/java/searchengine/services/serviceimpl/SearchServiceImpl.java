@@ -1,19 +1,18 @@
 package searchengine.services.serviceimpl;
 
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import searchengine.dto.statistics.SearchStatistics;
 import searchengine.dto.result.Result;
+import searchengine.dto.statistics.SearchStatistics;
 import searchengine.model.entity.Lemma;
 import searchengine.model.entity.Page;
 import searchengine.model.repo.LemmaRepo;
-import searchengine.model.repo.PageRepo;
-import searchengine.services.searchtools.SnippetTool;
 import searchengine.services.searchtools.*;
 import searchengine.services.service.SearchService;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -27,7 +26,6 @@ public class SearchServiceImpl implements SearchService {
     private final TitleTool titleTool;
     private final SnippetTool snippetTool;
     private final RelevanceTool relevanceTool;
-    private final PageRepo pageRepo;
 
     @Override
     public Result getResponseBySearching(String query, String site, Integer offset, Integer limit) {
@@ -35,11 +33,12 @@ public class SearchServiceImpl implements SearchService {
         Set<String> normalWords = lemmatizer.getNormalWords(query);
         List<Lemma> queryList = lemmaRepo.findByLemmaSet(normalWords).orElse(Collections.emptyList());
 
-        if (query.isEmpty()) {
+        if (query == null || query.isEmpty()) {
             result.setError("Задан пустой поисковый запрос");
             return result;
         }
-        if (!query.isEmpty() && queryList.isEmpty()) {
+
+        if (queryList.isEmpty()) {
             result.setError("Страниц, удовлетворяющих запрос, не существует.");
             return result;
         }
@@ -49,24 +48,21 @@ public class SearchServiceImpl implements SearchService {
             return result;
         }
 
-        Set<Page> pages = lemmaTool.getFilteredLemmas(queryList, site);
-        if (!pageRepo.findCodeGreaterThanOrEqual400().isEmpty()) {
-            result.setError("Ошибка: сервер не отвечает");
-        }
 
-        List<SearchStatistics> searchList = createDataList(queryList, pages);
-        result.setCount(searchList.size());
+        Set<Page> pages = lemmaTool.getFilteredLemmas(queryList, site);
+        List<SearchStatistics> searchDataList = createDataList(queryList, pages);
+        result.setCount(searchDataList.size());
         result.setResult(true);
 
-        if (offset >= searchList.size()) {
+        if (offset >= searchDataList.size()) {
             result.setData(Collections.emptyList());
         } else {
-            result.setData(searchList.subList(offset, Math.min(offset + limit, searchList.size())));
+            result.setData(searchDataList.subList(offset, Math.min(offset + limit, searchDataList.size())));
         }
         return result;
     }
 
-    private List<SearchStatistics> createDataList(List<Lemma> lemmaList, Set<Page> pageSet) {
+    public List<SearchStatistics> createDataList(List<Lemma> lemmaList, Set<Page> pageSet) {
         return pageSet.stream()
                 .map(page -> {
                     String siteUrl = page.getSite().getUrl();

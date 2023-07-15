@@ -10,7 +10,9 @@ import javax.persistence.*;
 @Setter
 @RequiredArgsConstructor
 @Entity
-@Table(name = "`indexes`")
+@Table(name = "`indexes`", indexes = {
+        @javax.persistence.Index(name = "index_page_id", columnList = "page_id"),
+        @javax.persistence.Index(name = "index_lemma_id", columnList = "lemma_id")})
 public class Index {
 
     @Id

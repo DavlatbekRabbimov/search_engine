@@ -1,25 +1,28 @@
 package searchengine.services.serviceimpl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import searchengine.dto.result.Result;
 import searchengine.dto.statistics.SearchStatistics;
-import searchengine.model.entity.Lemma;
-import searchengine.model.entity.Page;
+import searchengine.model.entity.Lemmas;
+import searchengine.model.entity.Pages;
 import searchengine.model.repo.LemmaRepo;
 import searchengine.services.searchtools.*;
-import searchengine.services.service.SearchService;
+import searchengine.services.service.Searcher;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-@Service
+@Slf4j
 @RequiredArgsConstructor
-public class SearchServiceImpl implements SearchService {
+@Service
+public class SearcherService implements Searcher {
 
     private final LemmaRepo lemmaRepo;
-    private final LemmatizerServiceImpl lemmatizer;
+    private final LemmatizerService lemmatizer;
     private final LemmaTool lemmaTool;
     private final SiteTool siteTool;
     private final ContentTool contentTool;
@@ -28,10 +31,13 @@ public class SearchServiceImpl implements SearchService {
     private final RelevanceTool relevanceTool;
 
     @Override
+    @Cacheable(value = "searchCache", key = "{#query, #site, #offset, #limit}")
     public Result getResponseBySearching(String query, String site, Integer offset, Integer limit) {
+
         Result result = new Result();
         Set<String> normalWords = lemmatizer.getNormalWords(query);
-        List<Lemma> queryList = lemmaRepo.findByLemmaSet(normalWords).orElse(Collections.emptyList());
+
+        List<Lemmas> queryList = lemmaRepo.findByLemmaSet(normalWords).orElse(Collections.emptyList());
 
         if (query == null || query.isEmpty()) {
             result.setError("Задан пустой поисковый запрос");
@@ -48,9 +54,9 @@ public class SearchServiceImpl implements SearchService {
             return result;
         }
 
-
-        Set<Page> pages = lemmaTool.getFilteredLemmas(queryList, site);
+        Set<Pages> pages = lemmaTool.getFilteredLemmas(queryList, site);
         List<SearchStatistics> searchDataList = createDataList(queryList, pages);
+
         result.setCount(searchDataList.size());
         result.setResult(true);
 
@@ -59,10 +65,13 @@ public class SearchServiceImpl implements SearchService {
         } else {
             result.setData(searchDataList.subList(offset, Math.min(offset + limit, searchDataList.size())));
         }
+        log.info("searchCache of query: {} | site: {} | offset: {} | limit: {} |",
+                query, site != null ? site : "All sites", offset, limit);
+
         return result;
     }
 
-    public List<SearchStatistics> createDataList(List<Lemma> lemmaList, Set<Page> pageSet) {
+    public List<SearchStatistics> createDataList(List<Lemmas> lemmaList, Set<Pages> pageSet) {
         return pageSet.stream()
                 .map(page -> {
                     String siteUrl = page.getSite().getUrl();
@@ -71,8 +80,8 @@ public class SearchServiceImpl implements SearchService {
                     String titles = titleTool.getTitle(page.getContent());
                     String contents = contentTool.getProcessedContent(page.getContent());
                     String snippets = snippetTool.generatedContentWithLemmaList(contents, lemmaList);
-                    float pageRelevance = relevanceTool.getRelevance(page);
-                    return new SearchStatistics(siteUrl, siteUrn, siteUri, titles, snippets, pageRelevance);
+                    float pageRank = relevanceTool.getPageRank(page.getId());
+                    return new SearchStatistics(siteUrl, siteUrn, siteUri, titles, snippets, pageRank);
                 })
                 .sorted(Collections.reverseOrder())
                 .toList();

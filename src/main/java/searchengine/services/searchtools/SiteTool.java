@@ -3,7 +3,7 @@ package searchengine.services.searchtools;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import searchengine.config.SiteConfig;
-import searchengine.model.entity.Site;
+import searchengine.model.entity.Sites;
 import searchengine.model.repo.SiteRepo;
 
 import java.io.IOException;
@@ -21,7 +21,7 @@ public class SiteTool {
     private final SiteConfig siteConfig;
     private final SiteRepo siteRepo;
 
-    public List<Site> getSiteListByUrl(String url) {
+    public List<Sites> getSiteByUrl(String url) {
         return Optional.ofNullable(url)
                 .flatMap(siteRepo::findSiteByUrl)
                 .map(Collections::singletonList)

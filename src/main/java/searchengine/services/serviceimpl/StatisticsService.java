@@ -10,24 +10,24 @@ import searchengine.dto.statistics.StatisticsData;
 import searchengine.dto.statistics.StatisticsResponse;
 import searchengine.dto.statistics.TotalStatistics;
 import searchengine.model.Status;
-import searchengine.model.entity.Site;
+import searchengine.model.entity.Sites;
 import searchengine.model.repo.LemmaRepo;
 import searchengine.model.repo.PageRepo;
 import searchengine.model.repo.SiteRepo;
-import searchengine.services.service.IndexingService;
-import searchengine.services.service.StatisticsService;
+import searchengine.services.service.Indexing;
+import searchengine.services.service.Statistics;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class StatisticsServiceImpl implements StatisticsService {
+public class StatisticsService implements Statistics {
 
     private final SiteRepo siteRepo;
     private final PageRepo pageRepo;
     private final LemmaRepo lemmaRepo;
-    private final IndexingService indexingService;
+    private final Indexing indexingService;
     private final DbService db;
     private final SiteConfig siteConfig;
 
@@ -45,7 +45,7 @@ public class StatisticsServiceImpl implements StatisticsService {
         }
         return new StatisticsResponse(true, new StatisticsData(total, detailed));
     }
-    private DetailedStatisticsItem initItem(Site site, TotalStatistics total) {
+    private DetailedStatisticsItem initItem(Sites site, TotalStatistics total) {
         String siteStatus = site.getStatus().toString();
         String errorResult = site.getLastError();
         long time = site.getStatusTime().getTime();

@@ -7,13 +7,13 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import searchengine.dto.result.Result;
-import searchengine.model.entity.Lemma;
-import searchengine.model.entity.Page;
-import searchengine.model.entity.Site;
+import searchengine.model.entity.Lemmas;
+import searchengine.model.entity.Pages;
+import searchengine.model.entity.Sites;
 import searchengine.model.repo.LemmaRepo;
 import searchengine.services.searchtools.*;
-import searchengine.services.serviceimpl.LemmatizerServiceImpl;
-import searchengine.services.serviceimpl.SearchServiceImpl;
+import searchengine.services.serviceimpl.LemmatizerService;
+import searchengine.services.serviceimpl.SearcherService;
 
 import java.util.*;
 
@@ -28,7 +28,7 @@ public class SearchServiceImplTest {
     @Mock
     private LemmaRepo lemmaRepo;
     @Mock
-    private LemmatizerServiceImpl lemmatizer;
+    private LemmatizerService lemmatizer;
     @Mock
     private LemmaTool lemmaTool;
     @Mock
@@ -42,13 +42,13 @@ public class SearchServiceImplTest {
     @Mock
     private RelevanceTool relevanceTool;
 
-    private SearchServiceImpl searchService;
+    private SearcherService searchService;
     private Result result;
 
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        this.searchService = new SearchServiceImpl(lemmaRepo, lemmatizer, lemmaTool, siteTool, contentTool, titleTool, snippetTool, relevanceTool);
+        this.searchService = new SearcherService(lemmaRepo, lemmatizer, lemmaTool, siteTool, contentTool, titleTool, snippetTool, relevanceTool);
     }
 
     @Test
@@ -64,7 +64,7 @@ public class SearchServiceImplTest {
 
         String searchQuery = "дома";
         LinkedHashSet<String> normalWords = new LinkedHashSet<>(Collections.singleton("дом"));
-        Optional<List<Lemma>> queryListIsEmpty = Optional.of(Collections.emptyList());
+        Optional<List<Lemmas>> queryListIsEmpty = Optional.of(Collections.emptyList());
 
         when(lemmatizer.getNormalWords(searchQuery)).thenReturn(normalWords);
         when(lemmaRepo.findByLemmaSet(any())).thenReturn(queryListIsEmpty);
@@ -81,7 +81,7 @@ public class SearchServiceImplTest {
         String searchQuery = "дома";
         LinkedHashSet<String> normalWords = new LinkedHashSet<>(Collections.singleton("дом"));
         String site = "https://playback.ru";
-        Optional<List<Lemma>> queryListHasValue = Optional.of(List.of(new Lemma(new Site(null, null, "", site, ""), "дом", 0)));
+        Optional<List<Lemmas>> queryListHasValue = Optional.of(List.of(new Lemmas(new Sites(null, null, "", site, ""), "дом", 0)));
 
         when(lemmatizer.getNormalWords(searchQuery)).thenReturn(normalWords);
         when(lemmaRepo.findByLemmaSet(normalWords)).thenReturn(queryListHasValue);
@@ -101,11 +101,11 @@ public class SearchServiceImplTest {
         String url = "https://playback.ru";
 
         LinkedHashSet<String> normalWords = new LinkedHashSet<>(Collections.singleton(normalWord));
-        Lemma lemma = new Lemma(null, normalWord, 0);
-        List<Lemma> queryListHasValue = List.of(lemma);
+        Lemmas lemma = new Lemmas(null, normalWord, 0);
+        List<Lemmas> queryListHasValue = List.of(lemma);
 
-        Site site = new Site(null, null, "", url, "");
-        Set<Page> pages = new HashSet<>(List.of(new Page(site, "", 0, "")));
+        Sites site = new Sites(null, null, "", url, "");
+        Set<Pages> pages = new HashSet<>(List.of(new Pages(site, "", 0, "")));
 
         when(lemmatizer.getNormalWords(searchQuery)).thenReturn(normalWords);
         when(lemmaRepo.findByLemmaSet(normalWords)).thenReturn(Optional.of(queryListHasValue));

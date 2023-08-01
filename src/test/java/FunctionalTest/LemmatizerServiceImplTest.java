@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
-import searchengine.services.serviceimpl.LemmatizerServiceImpl;
+import searchengine.services.serviceimpl.LemmatizerService;
 
 import java.io.IOException;
 import java.util.*;
@@ -14,12 +14,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(MockitoExtension.class)
 public class LemmatizerServiceImplTest {
-    LemmatizerServiceImpl lemmatizerService;
+    LemmatizerService lemmatizerService;
     @BeforeEach
     public void setUp() throws IOException {
 
         MockitoAnnotations.openMocks(this);
-        this.lemmatizerService = new LemmatizerServiceImpl();
+        this.lemmatizerService = new LemmatizerService();
 
     }
 
@@ -44,7 +44,7 @@ public class LemmatizerServiceImplTest {
             expected.merge(words, 1, Integer::sum);
         }
 
-        Map<String, Integer> actual = lemmatizerService.getNormalWordCounts(text);
+        Map<String, Integer> actual = lemmatizerService.getWordFrequencies(text);
 
         assertEquals(expected, actual);
     }
@@ -60,7 +60,7 @@ public class LemmatizerServiceImplTest {
             expected.computeIfAbsent(normalWords, key -> new HashSet<>()).add(words);
         }
 
-        Map<String, Set<String>> actual = lemmatizerService.getGeneratedNormalWords(text);
+        Map<String, HashSet<String>> actual = lemmatizerService.getGeneratedNormalWords(text);
 
         assertEquals(expected, actual);
     }

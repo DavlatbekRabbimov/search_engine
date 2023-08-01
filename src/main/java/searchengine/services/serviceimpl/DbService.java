@@ -1,5 +1,6 @@
 package searchengine.services.serviceimpl;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -7,14 +8,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.safety.Safelist;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import searchengine.config.Uri;
 import searchengine.model.*;
-import searchengine.model.entity.Index;
-import searchengine.model.entity.Lemma;
-import searchengine.model.entity.Page;
-import searchengine.model.entity.Site;
+import searchengine.model.entity.Indexes;
+import searchengine.model.entity.Lemmas;
+import searchengine.model.entity.Pages;
+import searchengine.model.entity.Sites;
 import searchengine.model.repo.IndexRepo;
 import searchengine.model.repo.LemmaRepo;
 import searchengine.model.repo.PageRepo;
@@ -24,6 +24,7 @@ import searchengine.services.parser.SiteRecursiveTask;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+@AllArgsConstructor
 @Getter
 @Setter
 @Service
@@ -32,24 +33,15 @@ public class DbService {
     private final PageRepo pageRepo;
     private final LemmaRepo lemmaRepo;
     private final IndexRepo indexRepo;
-    private final LemmatizerServiceImpl lemmatizer;
+    private final LemmatizerService lemmatizer;
     private static final Integer BAD_REQUEST = 400;
-
-    @Autowired
-    public DbService(SiteRepo siteRepo, PageRepo pageRepo, LemmaRepo lemmaRepo, IndexRepo indexRepo, LemmatizerServiceImpl lemmatizer) {
-        this.siteRepo = siteRepo;
-        this.pageRepo = pageRepo;
-        this.lemmaRepo = lemmaRepo;
-        this.indexRepo = indexRepo;
-        this.lemmatizer = lemmatizer;
-    }
 
     public void saveSiteToDb(Uri uri, Status status) {
         String processedUrl = StringUtils.stripEnd(uri.getUrl(), "/");
-        siteRepo.saveAndFlush(new Site(status, new Date(), "", processedUrl, uri.getName()));
+        siteRepo.saveAndFlush(new Sites(status, new Date(), "", processedUrl, uri.getName()));
     }
 
-    public void savePageToDb(Document document, Site site, String path) {
+    public void savePageToDb(Document document, Sites site, String path) {
         String processedPath = StringUtils.defaultIfBlank(path, "/");
         int statusCode = document.connection().response().statusCode();
 
@@ -59,8 +51,8 @@ public class DbService {
             siteRepo.saveAndFlush(siteEntity);
         });
 
-        Page page = pageRepo.findByPathAndSite(processedPath, site).orElseGet(()
-                -> new Page(site, processedPath, statusCode, document.html()));
+        Pages page = pageRepo.findByPathAndSite(processedPath, site).orElseGet(()
+                -> new Pages(site, processedPath, statusCode, document.html()));
         pageRepo.saveAndFlush(page);
 
         if (page.getCode() < BAD_REQUEST) {
@@ -69,8 +61,8 @@ public class DbService {
         }
     }
 
-    private void saveLemmaToDb(Page page) {
-        Set<Lemma> lemmas = ConcurrentHashMap.newKeySet();
+    private void saveLemmaToDb(Pages page) {
+        Set<Lemmas> lemmas = ConcurrentHashMap.newKeySet();
         synchronized (this) {
             getNormalizedWordCounts(page)
                     .entrySet()
@@ -82,25 +74,26 @@ public class DbService {
         }
     }
 
-    private void saveIndexToDb(Page page) {
-        Set<Index> indexes = ConcurrentHashMap.newKeySet();
+    private void saveIndexToDb(Pages page) {
+        Set<Indexes> indexes = ConcurrentHashMap.newKeySet();
         synchronized (this) {
             getNormalizedWordCounts(page).forEach((lemma, rank) -> {
                 if (SiteRecursiveTask.isInterrupted) return;
-                indexes.add(new Index(page, lemmaSaverSetting(page, lemma), rank));
+                indexes.add(new Indexes(page, lemmaSaverSetting(page, lemma), rank));
             });
             indexRepo.saveAllAndFlush(indexes);
         }
     }
 
-    private Map<String, Integer> getNormalizedWordCounts(Page page) {
-        return lemmatizer.getNormalWordCounts(Jsoup.clean(page.getContent(), Safelist.relaxed()).replaceAll("ё", "е"));
+    private Map<String, Integer> getNormalizedWordCounts(Pages page) {
+        return lemmatizer.getWordFrequencies(Jsoup.clean(page.getContent(), Safelist.relaxed()).replaceAll("ё", "е"));
     }
 
-    private Lemma lemmaSaverSetting(Page page, String lemmaName) {
-        return lemmaRepo.findByLemma(lemmaName).map(lemma -> {
-            lemma.setFrequency(lemma.getFrequency() + 1);
-            return lemma;
-        }).orElse(new Lemma(page.getSite(), lemmaName, 1));
+    private Lemmas lemmaSaverSetting(Pages page, String lemmaName) {
+        return lemmaRepo.findByLemma(lemmaName)
+                .map(lemma -> {
+                    lemma.setFrequency(lemma.getFrequency() + 1);
+                    return lemma;
+                }).orElse(new Lemmas(page.getSite(), lemmaName, 1));
     }
 }

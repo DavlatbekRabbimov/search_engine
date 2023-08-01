@@ -14,12 +14,13 @@ import searchengine.model.repo.PageRepo;
 import searchengine.model.repo.SiteRepo;
 import searchengine.services.searchtools.SiteTool;
 import searchengine.services.serviceimpl.DbService;
-import searchengine.services.serviceimpl.IndexingServiceImpl;
+import searchengine.services.serviceimpl.IndexingService;
 
 import java.util.concurrent.ForkJoinPool;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class IndexingServiceImplTest {
 
@@ -39,13 +40,13 @@ public class IndexingServiceImplTest {
     private SiteTool siteTool;
     @Mock
     ForkJoinPool pool;
-    private IndexingServiceImpl indexingService;
+    private IndexingService indexingService;
     private Result result;
 
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        this.indexingService = new IndexingServiceImpl(siteRepo, pageRepo, lemmaRepo, indexRepo, dbService, siteConfig, siteTool);
+        this.indexingService = new IndexingService(siteRepo, pageRepo, lemmaRepo, indexRepo, dbService, siteConfig, siteTool);
         this.indexingService.setPool(pool);
     }
 
@@ -53,16 +54,17 @@ public class IndexingServiceImplTest {
     public void testGetResultIfNotIndexing() {
         when(pool.getActiveThreadCount()).thenReturn(0);
 
-        result = indexingService.getResult();
-        assertTrue(result.isResult());
+        result = indexingService.startSiteIndexing();
+        assertFalse(result.isResult());
         assertEquals("Индексация не запущена", result.getError());
+
     }
 
     @Test
     public void testGetResultIfIsIndexing() {
         when(pool.getActiveThreadCount()).thenReturn(1);
 
-        result = indexingService.getResult();
+        result = indexingService.stopSiteIndexing();
         assertFalse(result.isResult());
         assertEquals("Индексация уже запущена", result.getError());
     }

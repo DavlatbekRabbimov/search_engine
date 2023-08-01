@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import searchengine.model.Status;
-import searchengine.model.entity.Site;
+import searchengine.model.entity.Sites;
 import searchengine.model.repo.PageRepo;
 import searchengine.model.repo.SiteRepo;
 import searchengine.services.serviceimpl.DbService;
@@ -22,7 +22,7 @@ public class SiteRecursiveTask extends RecursiveAction {
     private final SiteRepo siteRepo;
     private final PageRepo pageRepo;
     private final DbService db;
-    private final Site site;
+    private final Sites site;
     private final String path;
     public static volatile boolean isInterrupted = true;
     private static final int WAIT_TIME_MS = 300;

@@ -12,6 +12,8 @@
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
 	</properties>
+
+	<!--................................... SPRING PLUGINS  ...................................-->
 	<build>
 		<plugins>
 			<plugin>
@@ -21,6 +23,7 @@
 		</plugins>
 	</build>
 
+	<!--................................... SPRING PARENT .......................................-->
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
@@ -28,28 +31,31 @@
 		<relativePath/>
 	</parent>
 
+
+
 	<dependencies>
+
+		<!--............................... SPRING WEB .............................................-->
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
+
+		<!--.............................. INTEGRATION FILES ........................................-->
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-thymeleaf</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-jpa</artifactId>
-		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-configuration-processor</artifactId>
 			<optional>true</optional>
 		</dependency>
+
+		<!--.................................. APACHE ............................................-->
 
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -58,11 +64,69 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.apache.lucene.morphology</groupId>
+			<artifactId>morph</artifactId>
+			<version>1.5</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.lucene.analysis</groupId>
+			<artifactId>morphology</artifactId>
+			<version>1.5</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.lucene.morphology</groupId>
+			<artifactId>dictionary-reader</artifactId>
+			<version>1.5</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.lucene.morphology</groupId>
+			<artifactId>english</artifactId>
+			<version>1.5</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.lucene.morphology</groupId>
+			<artifactId>russian</artifactId>
+			<version>1.5</version>
+		</dependency>
+
+		<!--................................... DATABASE ...................................-->
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+
+		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
 			<version>8.0.32</version>
 		</dependency>
 
+<!--		<dependency>-->
+<!--			<groupId>org.flywaydb</groupId>-->
+<!--			<artifactId>flyway-core</artifactId>-->
+<!--			<version>6.0.0</version>-->
+<!--		</dependency>-->
+
+
+		<!--................................... CACHE ........................................-->
+
+		<dependency>
+			<groupId>javax.cache</groupId>
+			<artifactId>cache-api</artifactId>
+			<version>1.1.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.ehcache</groupId>
+			<artifactId>ehcache</artifactId>
+			<version>3.8.1</version>
+		</dependency>
+
+		<!--................................... HTML-HANDLER ...................................-->
 
 		<dependency>
 			<groupId>org.jsoup</groupId>
@@ -70,37 +134,7 @@
 			<version>1.15.3</version>
 		</dependency>
 
-		<dependency>
-			<groupId>org.apache.lucene.morphology</groupId>
-			<artifactId>morph</artifactId>
-			<version>1.5</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.lucene.analysis</groupId>
-			<artifactId>morphology</artifactId>
-			<version>1.5</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.lucene.morphology</groupId>
-			<artifactId>dictionary-reader</artifactId>
-			<version>1.5</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.lucene.morphology</groupId>
-			<artifactId>english</artifactId>
-			<version>1.5</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.lucene.morphology</groupId>
-			<artifactId>russian</artifactId>
-			<version>1.5</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
+		<!--................................... ANNOTATIONS ....................................-->
 
 		<dependency>
 			<groupId>org.jetbrains</groupId>
@@ -108,6 +142,20 @@
 			<version>13.0</version>
 			<scope>compile</scope>
 		</dependency>
+
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+		</dependency>
+
+		<!--................................... TESTING ....................................-->
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
 
 	<repositories>

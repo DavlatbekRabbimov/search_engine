@@ -1,23 +1,22 @@
 package searchengine.model.entity;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import searchengine.model.Status;
-
-
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Date;
 
+@Entity
+@Table(name = "`sites`", indexes = {
+        @Index(name = "idx_sites_name", columnList = "name")
+})
+@RequiredArgsConstructor
 @Getter
 @Setter
-@RequiredArgsConstructor
-@Entity
-@Table(name = "sites")
-public class Site {
+public class Sites implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(columnDefinition = "BIGINT", nullable = false)
+    @Column(columnDefinition = "INT", nullable = false)
     private int id;
 
     @Enumerated(EnumType.STRING)
@@ -36,7 +35,7 @@ public class Site {
     @Column(nullable = false)
     private String name;
 
-    public Site(Status status, Date statusTime, String lastError, String url, String name) {
+    public Sites(Status status, Date statusTime, String lastError, String url, String name) {
         this.status = status;
         this.statusTime = statusTime;
         this.lastError = lastError;

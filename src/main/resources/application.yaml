@@ -1,23 +1,31 @@
 server:
-  port: 8181
+  port: 8080
 
 spring:
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    username: your_username
-    password: your_password
-    url: jdbc:mysql://localhost:3306/your_db?useUnicode=true&characterEncoding=UTF-8&characterSetResults=utf8mb4&connectionCollation=utf8mb4_general_ci
+    username: username
+    password: password
+    url: jdbc:mysql://localhost:3306/db_name?useUnicode=true&characterEncoding=UTF-8&characterSetResults=utf8mb4&connectionCollation=utf8mb4_general_ci
+
   jpa:
     database: mysql
     open-in-view: true
     properties:
       hibernate:
+        use-new-id-generator-mappings: false
         dialect: org.hibernate.dialect.MySQL8Dialect
+        storage_engine: innodb
         search:
           lucene_version: LATEST
     hibernate:
       ddl-auto: update
     show-sql: true
+
+  cache:
+    jcache:
+      config: classpath:ehcache.xml
 
 indexing-settings:
   sites:

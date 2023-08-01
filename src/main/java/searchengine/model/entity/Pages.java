@@ -8,25 +8,28 @@ import org.hibernate.annotations.LazyCollectionOption;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
+import java.io.Serializable;
 
+@Entity
+@Table(name = "`pages`", indexes = {
+        @Index(name = "idx_pages_path", columnList = "path"),
+        @Index(name = "idx_pages_siteId", columnList = "site_id")})
+@RequiredArgsConstructor
 @Getter
 @Setter
-@RequiredArgsConstructor
-@Entity
-@Table(name = "pages")
-public class Page {
+public class Pages implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(columnDefinition = "BIGINT", nullable = false)
-    private Long id;
+    @Column(columnDefinition = "INT", nullable = false)
+    private int id;
 
     @JoinColumn(name = "site_id")
     @ManyToOne(cascade = CascadeType.MERGE)
     @LazyCollection(LazyCollectionOption.TRUE)
-    private Site site;
+    private Sites site;
 
-    @Column(columnDefinition = "TEXT NOT NULL, INDEX (path(512))")
+    @Column(columnDefinition = "VARCHAR(255)", nullable = false)
     private String path;
 
     @Column(columnDefinition = "INT", nullable = false)
@@ -36,7 +39,7 @@ public class Page {
     @Column(nullable = false)
     private String content;
 
-    public Page(Site site, String path, int code, String content) {
+    public Pages(Sites site, String path, int code, String content) {
         this.site = site;
         this.path = path;
         this.code = code;

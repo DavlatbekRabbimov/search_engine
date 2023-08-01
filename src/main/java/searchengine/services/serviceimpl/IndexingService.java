@@ -13,11 +13,11 @@ import searchengine.config.SiteConfig;
 import searchengine.dto.result.Result;
 import searchengine.model.*;
 
-import searchengine.model.entity.Site;
+import searchengine.model.entity.Sites;
 import searchengine.model.repo.*;
 import searchengine.services.parser.SiteRecursiveTask;
 import searchengine.services.searchtools.SiteTool;
-import searchengine.services.service.IndexingService;
+import searchengine.services.service.Indexing;
 
 import java.io.IOException;
 import java.util.*;
@@ -28,7 +28,7 @@ import java.util.concurrent.*;
 @Getter
 @Slf4j
 @Service
-public class IndexingServiceImpl implements IndexingService {
+public class IndexingService implements Indexing {
 
     private final SiteRepo siteRepo;
     private final PageRepo pageRepo;
@@ -38,26 +38,6 @@ public class IndexingServiceImpl implements IndexingService {
     private final SiteConfig siteConfig;
     private final SiteTool siteTool;
     private ForkJoinPool pool;
-
-    @Override
-    public Result getResult() {
-        Result result = new Result();
-        if (!isIndexing()) {
-            result.setResult(true);
-            result.setError("Индексация не запущена");
-            startIndexing();
-        }
-        if (isIndexing()) {
-            result.setResult(false);
-            result.setError("Индексация уже запущена");
-            stopIndexing();
-        }
-        if (SiteRecursiveTask.isInterrupted) {
-            result.setResult(false);
-            return result;
-        }
-        return result;
-    }
 
     @SneakyThrows
     @Override
@@ -76,43 +56,57 @@ public class IndexingServiceImpl implements IndexingService {
         return result;
     }
 
-    private void startIndexing() {
-        SiteRecursiveTask.isInterrupted = false;
-        indexRepo.deleteAllInBatch();
-        lemmaRepo.deleteAllInBatch();
-        pageRepo.deleteAllInBatch();
-        siteRepo.deleteAllInBatch();
-        siteConfig.getSites().forEach(uri -> db.saveSiteToDb(uri, Status.INDEXING));
-        pool = new ForkJoinPool();
-        siteRepo.findAll().stream().map(this::createIndexingThread).toList().forEach(Thread::start);
+    @Override
+    public Result startSiteIndexing() {
+        Result result = new Result();
+        if(!isIndexing()) {
+            result.setResult(false);
+            result.setError("Индексация не запущена");
+            SiteRecursiveTask.isInterrupted = false;
+            indexRepo.deleteAllInBatch();
+            lemmaRepo.deleteAllInBatch();
+            pageRepo.deleteAllInBatch();
+            siteRepo.deleteAllInBatch();
+            siteConfig.getSites().forEach(uri -> db.saveSiteToDb(uri, Status.INDEXING));
+            pool = new ForkJoinPool();
+            siteRepo.findAll().stream().map(this::createIndexingThread).toList().forEach(Thread::start);
+        }
+        else {
+            result.setResult(true);
+        }
+        return result;
     }
 
-    private void stopIndexing() {
+    @Override
+    public Result stopSiteIndexing() {
+        Result result = new Result();
         if (isIndexing()) {
+            result.setResult(false);
+            result.setError("Индексация уже запущена");
             SiteRecursiveTask.isInterrupted = true;
             pool.shutdownNow();
-            messageType("Индексация остановлена", true);
+            messageType("Индексация приостановлена", true);
         }
+        return result;
     }
+
 
     private void startIndexingPage(String url) {
         Thread thread = new Thread(() -> {
-            Site foundedSites = searchAvailableSites(url);
-            if (foundedSites != null) {
-                convertUrlAndSaveFoundPagesToDb(url, foundedSites);
-            }
+            Sites foundedSites = searchAvailableSites(url);
+            if (foundedSites != null) convertUrlAndSaveFoundPagesToDb(url, foundedSites);
         });
         thread.start();
     }
 
-    private Site searchAvailableSites(String url) {
+    private Sites searchAvailableSites(String url) {
         return siteRepo.findAll().stream()
                 .filter(site -> url.startsWith(site.getUrl()))
                 .findFirst()
                 .orElse(null);
     }
 
-    private void convertUrlAndSaveFoundPagesToDb(String url, Site site) {
+    private void convertUrlAndSaveFoundPagesToDb(String url, Sites site) {
         try {
             db.savePageToDb(Jsoup.connect(url).get(), site, url.replace(site.getUrl(), ""));
         } catch (IOException ex) {
@@ -120,7 +114,7 @@ public class IndexingServiceImpl implements IndexingService {
         }
     }
 
-    private Thread createIndexingThread(Site site) {
+    private Thread createIndexingThread(Sites site) {
         return new Thread(() -> {
             pool.invoke(new SiteRecursiveTask(siteRepo, pageRepo, db, site, ""));
             if (SiteRecursiveTask.isInterrupted) return;
@@ -128,8 +122,8 @@ public class IndexingServiceImpl implements IndexingService {
         });
     }
 
-    private void initAndSaveSiteToDb(Site site) {
-        Optional<Site> optSite = siteRepo.findSiteByUrl(site.getUrl());
+    private void initAndSaveSiteToDb(Sites site) {
+        Optional<Sites> optSite = siteRepo.findSiteByUrl(site.getUrl());
         if (optSite.isPresent() && !optSite.get().getStatus().equals(Status.FAILED)) {
             optSite.get().setStatus(Status.INDEXED);
             optSite.get().setStatusTime(new Date());

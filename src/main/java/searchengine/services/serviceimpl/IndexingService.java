@@ -8,20 +8,23 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.springframework.stereotype.Service;
-
 import searchengine.config.SiteConfig;
 import searchengine.dto.result.Result;
-import searchengine.model.*;
-
+import searchengine.model.Status;
 import searchengine.model.entity.Sites;
-import searchengine.model.repo.*;
+import searchengine.model.repo.IndexRepo;
+import searchengine.model.repo.LemmaRepo;
+import searchengine.model.repo.PageRepo;
+import searchengine.model.repo.SiteRepo;
 import searchengine.services.parser.SiteRecursiveTask;
 import searchengine.services.searchtools.SiteTool;
 import searchengine.services.service.Indexing;
 
 import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.Date;
+import java.util.Optional;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 
 @RequiredArgsConstructor
 @Setter

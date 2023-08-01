@@ -42,8 +42,8 @@ public class LemmatizerService implements Lemmatizer {
     }
 
     @Override
-    public Map<String, HashSet<String>> getGeneratedNormalWords(String text) {
-        Map<String, HashSet<String>> lemmas = new HashMap<>();
+    public Map<String, Set<String>> getGeneratedNormalWords(String text) {
+        Map<String, Set<String>> lemmas = new HashMap<>();
         processWords(splitTextIntoWords(text), w ->
                 lemmas.computeIfAbsent(normalizeWord(w), k -> new HashSet<>()).add(w));
         return lemmas;

@@ -6,7 +6,10 @@ import org.springframework.util.StringUtils;
 import searchengine.model.entity.Lemmas;
 import searchengine.services.serviceimpl.LemmatizerService;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -19,7 +22,7 @@ public class SnippetTool {
     private final Map<String, String> snippetCache = new ConcurrentHashMap<>();
 
     public String generatedContentWithLemmaList(String text, List<Lemmas> lemmaList) {
-        Map<String, HashSet<String>> normalWords = lemmatizer.getGeneratedNormalWords(text);
+        Map<String, Set<String>> normalWords = lemmatizer.getGeneratedNormalWords(text);
         StringBuilder combinedWords = new StringBuilder();
 
         for (String splitText : text.split(" ")) {
@@ -31,8 +34,8 @@ public class SnippetTool {
     }
 
 
-    private String tagQuery(String word, String lemma, Map<String, HashSet<String>> normalWords) {
-        HashSet<String> normalLemmas = normalWords.get(lemma);
+    private String tagQuery(String word, String lemma, Map<String, Set<String>> normalWords) {
+        Set<String> normalLemmas = normalWords.get(lemma);
         word = word.replaceAll("[^а-яА-ЯёЁ\\s]+", " ").replaceAll("\\s+", " ");
 
         StringBuilder tagBuilder = new StringBuilder();
@@ -42,10 +45,7 @@ public class SnippetTool {
                 String taggedWord = tagBuilder.append(c).toString();
                 if (normalLemmas == null) return word.replaceAll("\\s+", " ");
                 if ((normalLemmas.stream().anyMatch(taggedWord::equalsIgnoreCase))) {
-                    word = word.replace(taggedWord, word
-                                    .concat("<b>")
-                                    .concat(taggedWord)
-                                    .concat("</b>"))
+                    word = word.replace(taggedWord, "<b>".concat(taggedWord).concat("</b>"))
                             .replaceAll("\\s+", " ");
                 }
             }

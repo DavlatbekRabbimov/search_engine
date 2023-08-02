@@ -21,7 +21,7 @@ spring:
           lucene_version: LATEST
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
 
   cache:
     jcache:

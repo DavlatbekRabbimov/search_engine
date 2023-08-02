@@ -49,14 +49,15 @@ public class LemmatizerService implements Lemmatizer {
         return lemmas;
     }
 
-    private String normalizeWord(String word) {
-        return morphology.getNormalForms(word).get(0);
+    private String normalizeWord(String word) throws IndexOutOfBoundsException {
+        String normalForms = morphology.getNormalForms(word).get(0);
+        return normalForms.length() > 0 ? normalForms : word;
     }
 
     public void processWords(String[] text, Consumer<String> consumer) {
         Arrays.stream(text)
                 .parallel()
-                .filter(w -> !termSet.contains(w))
+                .filter(w -> !isMorph(w))
                 .forEachOrdered(consumer);
     }
 
@@ -66,6 +67,16 @@ public class LemmatizerService implements Lemmatizer {
                 .replaceAll("[^а-яё]+", " ")
                 .trim()
                 .split("\\s+");
+    }
+
+    private boolean isMorph(String word){
+        if (word.isBlank()) return true;
+        for (String morphInfo: morphology.getMorphInfo(word)) {
+            if (termSet.contains(morphInfo.substring(morphInfo.indexOf(" ")))){
+                return true;
+            }
+        }
+        return false;
     }
 }
 
